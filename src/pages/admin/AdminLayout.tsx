@@ -8,7 +8,7 @@ const navItems = [
   { to: '/admin/events', icon: <CalendarDays size={18} />, label: '이벤트 관리' },
   { to: '/admin/reservations', icon: <ClipboardList size={18} />, label: '예약 관리' },
   { to: '/admin/statistics', icon: <BarChart2 size={18} />, label: '통계' },
-  { to: '/admin/settlement', icon: <Wallet size={18} />, label: '정산' },
+  { to: '/admin/settlement', icon: <Wallet size={18} />, label: '방문 현황' },
 ];
 
 export default function AdminLayout() {

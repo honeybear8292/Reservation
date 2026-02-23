@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import type { Reservation } from '../types';
-import { formatDate, formatCurrency, paymentLabel } from '../utils/helpers';
+import { formatDate } from '../utils/helpers';
 
 interface Props {
   reservation: Reservation;
@@ -14,7 +14,7 @@ export default function QRTicket({ reservation: r, compact = false }: Props) {
   useEffect(() => {
     if (canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, r.id, {
-        width: compact ? 100 : 160,
+        width: compact ? 80 : 160,
         margin: 2,
         color: { dark: '#2c3e50', light: '#ffffff' },
       });
@@ -30,8 +30,13 @@ export default function QRTicket({ reservation: r, compact = false }: Props) {
           <p className="text-xs text-gray-500">{formatDate(r.date)} {r.time}</p>
           <p className="text-xs text-gray-500">{r.venue}</p>
           <p className="text-xs font-semibold mt-1" style={{ color: '#91ADC2' }}>
-            {r.seatNumbers.length > 0 ? r.seatNumbers.join(', ') : `${r.attendeeCount}명`}
+            {r.customer.name} · {r.attendeeCount}명
           </p>
+          <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-1 font-semibold ${
+            r.status === 'confirmed' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+          }`}>
+            {r.status === 'confirmed' ? '예약확정' : '취소됨'}
+          </span>
         </div>
       </div>
     );
@@ -45,33 +50,33 @@ export default function QRTicket({ reservation: r, compact = false }: Props) {
         <h2 className="font-bold text-lg leading-tight">{r.eventTitle}</h2>
       </div>
 
-      {/* Body */}
+      {/* QR */}
       <div className="p-6">
         <div className="flex justify-center mb-5">
-          <canvas ref={canvasRef} className="rounded-lg" />
+          <div className="p-3 rounded-2xl border-2 border-dashed border-gray-200">
+            <canvas ref={canvasRef} className="rounded-lg" />
+          </div>
         </div>
 
         <div className="text-center mb-5">
           <p className="text-xs text-gray-400 mb-1">예약 번호</p>
-          <p className="font-mono font-bold text-gray-700 tracking-wider">{r.id.toUpperCase()}</p>
+          <p className="font-mono font-bold text-gray-700 tracking-wider text-sm">{r.id.toUpperCase()}</p>
         </div>
 
-        <div className="space-y-2 text-sm">
+        {/* Info rows */}
+        <div className="space-y-2.5 text-sm">
           {[
             { label: '장소', value: r.venue },
+            { label: '주소', value: r.address },
             { label: '날짜', value: formatDate(r.date) },
             { label: '시간', value: r.time },
-            {
-              label: '좌석',
-              value: r.seatNumbers.length > 0 ? r.seatNumbers.join(', ') : `${r.attendeeCount}명`,
-            },
             { label: '예약자', value: r.customer.name },
-            { label: '결제', value: paymentLabel[r.paymentMethod] },
-            { label: '금액', value: formatCurrency(r.totalAmount) },
+            { label: '연락처', value: r.customer.phone },
+            { label: '방문 인원', value: `${r.attendeeCount}명` },
           ].map(({ label, value }) => (
             <div key={label} className="flex justify-between items-start gap-2">
-              <span className="text-gray-400 shrink-0">{label}</span>
-              <span className="font-medium text-gray-700 text-right">{value}</span>
+              <span className="text-gray-400 shrink-0 w-16">{label}</span>
+              <span className="font-medium text-gray-700 text-right flex-1">{value}</span>
             </div>
           ))}
         </div>
@@ -84,8 +89,9 @@ export default function QRTicket({ reservation: r, compact = false }: Props) {
 
       {/* Footer */}
       <div style={{ backgroundColor: '#FFDAB9' }} className="px-6 py-3 text-center">
-        <p className="text-xs text-gray-600">
-          입장 시 QR코드를 제시해 주세요 · {r.status === 'confirmed' ? '✓ 예약확정' : '✕ 취소됨'}
+        <p className="text-xs text-gray-600 font-medium">
+          방문 시 QR코드를 제시해 주세요&nbsp;·&nbsp;
+          {r.status === 'confirmed' ? '✓ 예약확정' : '✕ 취소됨'}
         </p>
       </div>
     </div>

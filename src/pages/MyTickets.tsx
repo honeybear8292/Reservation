@@ -4,7 +4,7 @@ import { Search, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import QRTicket from '../components/QRTicket';
 import type { Reservation } from '../types';
-import { formatDate, formatCurrency } from '../utils/helpers';
+import { formatDate } from '../utils/helpers';
 
 export default function MyTickets() {
   const navigate = useNavigate();
@@ -13,31 +13,27 @@ export default function MyTickets() {
   const [submitted, setSubmitted] = useState('');
   const [selected, setSelected] = useState<Reservation | null>(null);
 
-  const reservations = submitted ? getUserReservations(submitted) : [];
+  const reservations = submitted ? getUserReservations(submitted.replace(/-/g, '')) : [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(phone.replace(/-/g, ''));
+    setSubmitted(phone);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       <div className="py-10 text-center" style={{ backgroundColor: '#91ADC2' }}>
-        <h1 className="text-3xl font-extrabold text-white mb-2">내 티켓</h1>
-        <p className="text-blue-100 text-sm">예약한 티켓을 조회하세요</p>
+        <h1 className="text-3xl font-extrabold text-white mb-2">내 예약</h1>
+        <p className="text-blue-100 text-sm">휴대폰 번호로 예약 내역을 조회하세요</p>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Search form */}
-        <form
-          onSubmit={handleSearch}
-          className="bg-white rounded-2xl shadow-sm p-6 mb-6"
-        >
-          <h2 className="font-bold text-gray-800 mb-4">휴대폰 번호로 예약 조회</h2>
+        <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          <h2 className="font-bold text-gray-800 mb-4">예약 조회</h2>
           <div className="flex gap-2">
             <input
               type="tel"
-              placeholder="예) 01012345678"
+              placeholder="휴대폰 번호 입력 (예: 01012345678)"
               value={phone}
               onChange={e => setPhone(e.target.value)}
               className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#91ADC2]"
@@ -52,25 +48,24 @@ export default function MyTickets() {
           </div>
         </form>
 
-        {/* Results */}
         {submitted && (
           <>
             {reservations.length === 0 ? (
               <div className="text-center py-16 text-gray-400">
-                <p className="text-4xl mb-4">🎫</p>
+                <p className="text-4xl mb-4">📋</p>
                 <p className="font-medium">예약 내역이 없습니다</p>
                 <button
                   onClick={() => navigate('/events')}
                   className="mt-4 px-6 py-2.5 rounded-lg text-white text-sm font-semibold hover:opacity-90"
                   style={{ backgroundColor: '#91ADC2' }}
                 >
-                  이벤트 예약하기
+                  방문 예약하기
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-gray-500">총 {reservations.length}건의 예약</p>
-                {reservations.map(r => (
+                {[...reservations].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(r => (
                   <div
                     key={r.id}
                     className={`bg-white rounded-2xl shadow-sm p-5 cursor-pointer hover:shadow-md transition-all border-l-4 ${
@@ -80,7 +75,7 @@ export default function MyTickets() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1.5">
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
                               r.status === 'confirmed' ? 'text-white' : 'bg-gray-100 text-gray-500'
@@ -91,15 +86,13 @@ export default function MyTickets() {
                           </span>
                         </div>
                         <p className="font-bold text-gray-800 truncate">{r.eventTitle}</p>
-                        <p className="text-sm text-gray-500 mt-0.5">{formatDate(r.date)} {r.time}</p>
-                        <p className="text-sm text-gray-500">{r.venue}</p>
-                        <p className="text-sm font-semibold mt-1.5" style={{ color: '#91ADC2' }}>
-                          {formatCurrency(r.totalAmount)}
+                        <p className="text-sm text-gray-500 mt-0.5">{r.venue}</p>
+                        <p className="text-sm text-gray-500">{formatDate(r.date)} · {r.time}</p>
+                        <p className="text-sm font-semibold mt-1" style={{ color: '#91ADC2' }}>
+                          {r.customer.name} · {r.attendeeCount}명 방문
                         </p>
                       </div>
-                      <div className="text-xs text-gray-400 shrink-0 ml-2">
-                        QR 보기 &rsaquo;
-                      </div>
+                      <span className="text-xs text-gray-400 shrink-0 ml-2">QR 보기 &rsaquo;</span>
                     </div>
                   </div>
                 ))}
@@ -116,10 +109,7 @@ export default function MyTickets() {
           style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
           onClick={() => setSelected(null)}
         >
-          <div
-            className="relative w-full max-w-sm"
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="relative w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <button
               onClick={() => setSelected(null)}
               className="absolute -top-3 -right-3 z-10 w-9 h-9 bg-white rounded-full shadow flex items-center justify-center"

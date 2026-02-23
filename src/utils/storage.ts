@@ -1,8 +1,7 @@
-import type { Event, Reservation, SeatAvailability } from '../types';
+import type { Event, Reservation } from '../types';
 
 const EVENTS_KEY = 'rv_events';
 const RESERVATIONS_KEY = 'rv_reservations';
-const AVAILABILITY_KEY = 'rv_availability';
 const ADMIN_AUTH_KEY = 'rv_admin_auth';
 
 export const getEvents = (): Event[] => {
@@ -17,36 +16,16 @@ export const getReservations = (): Reservation[] => {
 export const saveReservations = (reservations: Reservation[]) =>
   localStorage.setItem(RESERVATIONS_KEY, JSON.stringify(reservations));
 
-export const getAvailability = (): SeatAvailability[] => {
-  try { return JSON.parse(localStorage.getItem(AVAILABILITY_KEY) || '[]'); } catch { return []; }
-};
-export const saveAvailability = (av: SeatAvailability[]) =>
-  localStorage.setItem(AVAILABILITY_KEY, JSON.stringify(av));
-
-export const getReservedSeats = (eventId: string, date: string, time: string): string[] => {
-  const all = getAvailability();
-  return all.find(a => a.eventId === eventId && a.date === date && a.time === time)?.reservedSeats ?? [];
-};
-
-export const addReservedSeats = (eventId: string, date: string, time: string, seats: string[]) => {
-  const all = getAvailability();
-  const idx = all.findIndex(a => a.eventId === eventId && a.date === date && a.time === time);
-  if (idx >= 0) {
-    all[idx].reservedSeats = [...new Set([...all[idx].reservedSeats, ...seats])];
-  } else {
-    all.push({ eventId, date, time, reservedSeats: seats });
-  }
-  saveAvailability(all);
-};
-
-export const removeReservedSeats = (eventId: string, date: string, time: string, seats: string[]) => {
-  const all = getAvailability();
-  const idx = all.findIndex(a => a.eventId === eventId && a.date === date && a.time === time);
-  if (idx >= 0) {
-    all[idx].reservedSeats = all[idx].reservedSeats.filter(s => !seats.includes(s));
-    saveAvailability(all);
-  }
-};
+/** 특정 이벤트·날짜·시간대의 확정 예약 인원 합계 */
+export const getSlotUsedCount = (
+  reservations: Reservation[],
+  eventId: string,
+  date: string,
+  time: string
+): number =>
+  reservations
+    .filter(r => r.eventId === eventId && r.date === date && r.time === time && r.status === 'confirmed')
+    .reduce((sum, r) => sum + r.attendeeCount, 0);
 
 export const isAdminLoggedIn = (): boolean =>
   localStorage.getItem(ADMIN_AUTH_KEY) === 'true';

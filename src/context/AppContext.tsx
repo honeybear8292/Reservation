@@ -12,7 +12,6 @@ interface AppContextType {
   addReservation: (r: Reservation) => void;
   cancelReservation: (id: string) => void;
   getEventById: (id: string) => Event | undefined;
-  getReservationById: (id: string) => Reservation | undefined;
   getUserReservations: (phone: string) => Reservation[];
 }
 
@@ -23,12 +22,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
   useEffect(() => {
-    let storedEvents = getEvents();
-    if (storedEvents.length === 0) {
-      storedEvents = SEED_EVENTS;
-      saveEvents(storedEvents);
+    let stored = getEvents();
+    if (stored.length === 0) {
+      stored = SEED_EVENTS;
+      saveEvents(stored);
     }
-    setEvents(storedEvents);
+    setEvents(stored);
     setReservations(getReservations());
   }, []);
 
@@ -57,15 +56,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const getEventById = useCallback((id: string) => events.find(e => e.id === id), [events]);
-  const getReservationById = useCallback((id: string) => reservations.find(r => r.id === id), [reservations]);
   const getUserReservations = useCallback((phone: string) =>
     reservations.filter(r => r.customer.phone === phone), [reservations]);
 
   return (
     <AppContext.Provider value={{
       events, reservations, addEvent, updateEvent, deleteEvent,
-      addReservation, cancelReservation, getEventById,
-      getReservationById, getUserReservations,
+      addReservation, cancelReservation, getEventById, getUserReservations,
     }}>
       {children}
     </AppContext.Provider>
