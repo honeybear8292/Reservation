@@ -11,8 +11,11 @@ interface AppContextType {
   deleteEvent: (id: string) => void;
   addReservation: (r: Reservation) => void;
   cancelReservation: (id: string) => void;
+  checkIn: (id: string) => void;
   getEventById: (id: string) => Event | undefined;
+  getEventBySlug: (slug: string) => Event | undefined;
   getUserReservations: (phone: string) => Reservation[];
+  getEventReservationsByPhone: (eventId: string, phone: string) => Reservation[];
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -55,14 +58,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, []);
 
+  const checkIn = useCallback((id: string) => {
+    setReservations(prev => {
+      const next = prev.map(r =>
+        r.id === id ? { ...r, checkedIn: true, checkedInAt: new Date().toISOString() } : r
+      );
+      saveReservations(next);
+      return next;
+    });
+  }, []);
+
   const getEventById = useCallback((id: string) => events.find(e => e.id === id), [events]);
+  const getEventBySlug = useCallback((slug: string) => events.find(e => e.slug === slug), [events]);
   const getUserReservations = useCallback((phone: string) =>
     reservations.filter(r => r.customer.phone === phone), [reservations]);
+  const getEventReservationsByPhone = useCallback((eventId: string, phone: string) =>
+    reservations.filter(r => r.eventId === eventId && r.customer.phone === phone), [reservations]);
 
   return (
     <AppContext.Provider value={{
-      events, reservations, addEvent, updateEvent, deleteEvent,
-      addReservation, cancelReservation, getEventById, getUserReservations,
+      events, reservations,
+      addEvent, updateEvent, deleteEvent,
+      addReservation, cancelReservation, checkIn,
+      getEventById, getEventBySlug,
+      getUserReservations, getEventReservationsByPhone,
     }}>
       {children}
     </AppContext.Provider>

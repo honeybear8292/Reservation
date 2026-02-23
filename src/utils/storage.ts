@@ -1,27 +1,46 @@
 import type { Event, Reservation } from '../types';
+import { generateSlug } from './helpers';
 
 const EVENTS_KEY = 'rv_events';
 const RESERVATIONS_KEY = 'rv_reservations';
 const ADMIN_AUTH_KEY = 'rv_admin_auth';
 
+/** 기존 데이터에 slug/customFields/extraFields/checkedIn 없으면 마이그레이션 */
+const migrateEvent = (e: Record<string, unknown>): Event => ({
+  ...(e as unknown as Event),
+  slug: (e.slug as string) ?? generateSlug(),
+  customFields: (e.customFields as Event['customFields']) ?? [],
+});
+
+const migrateReservation = (r: Record<string, unknown>): Reservation => ({
+  ...(r as unknown as Reservation),
+  extraFields: (r.extraFields as Record<string, string>) ?? {},
+  checkedIn: (r.checkedIn as boolean) ?? false,
+});
+
 export const getEvents = (): Event[] => {
-  try { return JSON.parse(localStorage.getItem(EVENTS_KEY) || '[]'); } catch { return []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(EVENTS_KEY) || '[]') as Record<string, unknown>[];
+    return raw.map(migrateEvent);
+  } catch { return []; }
 };
 export const saveEvents = (events: Event[]) =>
   localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
 
 export const getReservations = (): Reservation[] => {
-  try { return JSON.parse(localStorage.getItem(RESERVATIONS_KEY) || '[]'); } catch { return []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(RESERVATIONS_KEY) || '[]') as Record<string, unknown>[];
+    return raw.map(migrateReservation);
+  } catch { return []; }
 };
 export const saveReservations = (reservations: Reservation[]) =>
   localStorage.setItem(RESERVATIONS_KEY, JSON.stringify(reservations));
 
-/** 특정 이벤트·날짜·시간대의 확정 예약 인원 합계 */
 export const getSlotUsedCount = (
   reservations: Reservation[],
   eventId: string,
   date: string,
-  time: string
+  time: string,
 ): number =>
   reservations
     .filter(r => r.eventId === eventId && r.date === date && r.time === time && r.status === 'confirmed')

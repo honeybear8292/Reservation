@@ -7,12 +7,16 @@ import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import Reserve from './pages/Reserve';
 import MyTickets from './pages/MyTickets';
+import EventEntry from './pages/EventEntry';
+import EventReserve from './pages/EventReserve';
+import EventTicket from './pages/EventTicket';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './pages/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import EventsManage from './pages/admin/EventsManage';
 import EventForm from './pages/admin/EventForm';
 import ReservationsManage from './pages/admin/ReservationsManage';
+import CheckIn from './pages/admin/CheckIn';
 import Statistics from './pages/admin/Statistics';
 import Settlement from './pages/admin/Settlement';
 
@@ -29,6 +33,11 @@ export default function App() {
           <Route path="/reserve/:id" element={<Reserve />} />
           <Route path="/my-tickets" element={<MyTickets />} />
 
+          {/* Event-specific public pages (slug-based) */}
+          <Route path="/e/:slug" element={<EventEntry />} />
+          <Route path="/e/:slug/reserve" element={<EventReserve />} />
+          <Route path="/e/:slug/ticket" element={<EventTicket />} />
+
           {/* Admin */}
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
@@ -37,6 +46,7 @@ export default function App() {
             <Route path="events/create" element={<EventForm />} />
             <Route path="events/:id/edit" element={<EventForm />} />
             <Route path="reservations" element={<ReservationsManage />} />
+            <Route path="checkin" element={<CheckIn />} />
             <Route path="statistics" element={<Statistics />} />
             <Route path="settlement" element={<Settlement />} />
           </Route>

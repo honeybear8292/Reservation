@@ -72,7 +72,7 @@ export default function ReservationsManage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FFDAB9' }}>
-                {['예약번호', '행사명', '예약자', '방문날짜', '방문시간', '인원', '상태', ''].map(h => (
+                {['예약번호', '행사명', '예약자', '방문날짜', '방문시간', '인원', '상태', '입장', ''].map(h => (
                   <th key={h} className="px-3 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -81,7 +81,7 @@ export default function ReservationsManage() {
               {filtered.length === 0 ? (
                 <tr><td colSpan={8} className="text-center py-12 text-gray-400">예약 내역이 없습니다</td></tr>
               ) : filtered.map(r => (
-                <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={r.id} className={`hover:bg-gray-50 transition-colors ${r.checkedIn ? 'bg-green-50' : ''}`}>
                   <td className="px-3 py-3 font-mono text-xs text-gray-400">{r.id.slice(0, 8).toUpperCase()}</td>
                   <td className="px-3 py-3 max-w-[160px]">
                     <p className="font-medium text-gray-800 truncate">{r.eventTitle}</p>
@@ -99,6 +99,13 @@ export default function ReservationsManage() {
                     }`}>
                       {r.status === 'confirmed' ? '확정' : '취소'}
                     </span>
+                  </td>
+                  <td className="px-3 py-3">
+                    {r.checkedIn ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">입장완료</span>
+                    ) : r.status === 'confirmed' ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-400">미입장</span>
+                    ) : null}
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1">
@@ -136,6 +143,9 @@ export default function ReservationsManage() {
               </div>
               <p className="text-xs text-gray-500">{formatDate(r.date)} · {r.time}</p>
               <p className="text-sm font-bold mt-1" style={{ color: '#91ADC2' }}>{r.attendeeCount}명 방문</p>
+              {r.checkedIn && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">입장완료</span>
+              )}
               <div className="flex gap-2 mt-3">
                 <button onClick={() => setSelected(r)}
                   className="flex-1 py-2 text-xs rounded-lg text-white font-medium"

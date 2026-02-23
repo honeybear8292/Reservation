@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, ClipboardList, BarChart2, Wallet, LogOut, Ticket, Menu, X } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, ClipboardList, BarChart2, Wallet, LogOut, Ticket, Menu, X, QrCode } from 'lucide-react';
 import { isAdminLoggedIn, adminLogout } from '../../utils/storage';
 
 const navItems = [
   { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: '대시보드' },
   { to: '/admin/events', icon: <CalendarDays size={18} />, label: '이벤트 관리' },
   { to: '/admin/reservations', icon: <ClipboardList size={18} />, label: '예약 관리' },
+  { to: '/admin/checkin', icon: <QrCode size={18} />, label: 'QR 체크인' },
   { to: '/admin/statistics', icon: <BarChart2 size={18} />, label: '통계' },
   { to: '/admin/settlement', icon: <Wallet size={18} />, label: '방문 현황' },
 ];

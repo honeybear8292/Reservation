@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Trash2, ChevronLeft } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, Copy, GripVertical } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { generateId } from '../../utils/helpers';
-import type { Event, TimeSlotDef } from '../../types';
+import { generateId, generateSlug } from '../../utils/helpers';
+import type { Event, TimeSlotDef, CustomField, CustomFieldType } from '../../types';
 
 function generateDateRange(start: string, end: string): string[] {
   if (!start || !end) return [];
@@ -25,6 +25,27 @@ const DEFAULT_SLOTS: TimeSlotDef[] = [
   { id: generateId(), time: '15:00', maxCapacity: 20 },
 ];
 
+const BASE_FIELDS: CustomField[] = [
+  { id: 'bf1', key: 'name', label: '이름', type: 'text', placeholder: '홍길동', required: true },
+  { id: 'bf2', key: 'phone', label: '연락처', type: 'tel', placeholder: '01012345678', required: true },
+];
+
+const FIELD_TYPE_LABELS: Record<CustomFieldType, string> = {
+  text: '텍스트',
+  tel: '전화번호',
+  email: '이메일',
+  number: '숫자',
+  select: '선택지',
+};
+
+interface NewFieldState {
+  label: string;
+  type: CustomFieldType;
+  required: boolean;
+  placeholder: string;
+  options: string;
+}
+
 export default function EventForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -40,24 +61,67 @@ export default function EventForm() {
   const [endDate, setEndDate] = useState(existing?.dates[existing?.dates.length - 1] ?? '');
   const [timeSlots, setTimeSlots] = useState<TimeSlotDef[]>(existing?.timeSlots ?? DEFAULT_SLOTS);
   const [status, setStatus] = useState<'active' | 'closed' | 'draft'>(existing?.status ?? 'active');
+  const [slug] = useState<string>(existing?.slug ?? generateSlug());
+  const [customFields, setCustomFields] = useState<CustomField[]>(
+    existing?.customFields && existing.customFields.length > 0 ? existing.customFields : BASE_FIELDS
+  );
+  const [showAddField, setShowAddField] = useState(false);
+  const [newField, setNewField] = useState<NewFieldState>({
+    label: '', type: 'text', required: false, placeholder: '', options: '',
+  });
+  const [urlCopied, setUrlCopied] = useState(false);
 
   const addSlot = () =>
     setTimeSlots(prev => [...prev, { id: generateId(), time: '10:00', maxCapacity: 20 }]);
-  const removeSlot = (id: string) =>
-    setTimeSlots(prev => prev.filter(t => t.id !== id));
-  const updateSlot = (id: string, key: keyof TimeSlotDef, value: string | number) =>
-    setTimeSlots(prev => prev.map(t => t.id === id ? { ...t, [key]: value } : t));
+  const removeSlot = (sid: string) =>
+    setTimeSlots(prev => prev.filter(t => t.id !== sid));
+  const updateSlot = (sid: string, key: keyof TimeSlotDef, value: string | number) =>
+    setTimeSlots(prev => prev.map(t => t.id === sid ? { ...t, [key]: value } : t));
+
+  const addCustomField = () => {
+    if (!newField.label.trim()) return;
+    const key = newField.label.toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_가-힣]/g, '')
+      || `field_${generateId().slice(0, 4)}`;
+    const field: CustomField = {
+      id: generateId(),
+      key,
+      label: newField.label.trim(),
+      type: newField.type,
+      required: newField.required,
+      placeholder: newField.placeholder.trim() || undefined,
+      options: newField.type === 'select'
+        ? newField.options.split(',').map(s => s.trim()).filter(Boolean)
+        : undefined,
+    };
+    setCustomFields(prev => [...prev, field]);
+    setNewField({ label: '', type: 'text', required: false, placeholder: '', options: '' });
+    setShowAddField(false);
+  };
+
+  const removeField = (fid: string) => setCustomFields(prev => prev.filter(f => f.id !== fid));
+  const toggleRequired = (fid: string) =>
+    setCustomFields(prev => prev.map(f => f.id === fid ? { ...f, required: !f.required } : f));
+
+  const copyUrl = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/e/${slug}`);
+    setUrlCopied(true);
+    setTimeout(() => setUrlCopied(false), 2000);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const dates = generateDateRange(startDate, endDate);
     if (dates.length === 0) { alert('날짜 범위를 확인해주세요.'); return; }
     if (timeSlots.length === 0) { alert('시간대를 최소 1개 이상 추가해주세요.'); return; }
+    if (customFields.length === 0) { alert('예약 정보 필드를 최소 1개 이상 추가해주세요.'); return; }
 
     const event: Event = {
       id: isEdit ? id : generateId(),
+      slug,
       title, description, venue, address,
-      dates, timeSlots, status,
+      dates, timeSlots, customFields, status,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     };
     if (isEdit) { updateEvent(event); } else { addEvent(event); }
@@ -113,6 +177,26 @@ export default function EventForm() {
               <option value="closed">예약 마감</option>
               <option value="draft">임시저장</option>
             </select>
+          </div>
+
+          {/* 예약 URL */}
+          <div>
+            <label className={labelCls}>예약 공유 URL</label>
+            <div className="flex gap-2">
+              <div className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm font-mono text-gray-600 truncate">
+                {window.location.origin}/e/{slug}
+              </div>
+              <button
+                type="button"
+                onClick={copyUrl}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 shrink-0"
+                style={{ backgroundColor: urlCopied ? '#22c55e' : '#91ADC2' }}
+              >
+                <Copy size={14} />
+                {urlCopied ? '복사됨!' : 'URL 복사'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1.5">이 링크를 방문 예약자에게 공유하세요</p>
           </div>
         </div>
 
@@ -201,6 +285,154 @@ export default function EventForm() {
               최대 {timeSlots.reduce((s, t) => s + t.maxCapacity, 0)}명/일 방문 가능
             </p>
           </div>
+        </div>
+
+        {/* 예약 정보 필드 */}
+        <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between border-b pb-2">
+            <div>
+              <h3 className="font-bold text-gray-700 text-sm">예약 정보 필드</h3>
+              <p className="text-xs text-gray-400 mt-0.5">방문자에게 수집할 정보를 설정하세요</p>
+            </div>
+            {!showAddField && (
+              <button
+                type="button"
+                onClick={() => setShowAddField(true)}
+                className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg text-white font-semibold"
+                style={{ backgroundColor: '#91ADC2' }}
+              >
+                <Plus size={13} /> 필드 추가
+              </button>
+            )}
+          </div>
+
+          {/* 현재 필드 목록 */}
+          <div className="space-y-2">
+            {customFields.map((f) => (
+              <div key={f.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                <GripVertical size={14} className="text-gray-300 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm text-gray-800">{f.label}</span>
+                    <span className="text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                      {FIELD_TYPE_LABELS[f.type]}
+                    </span>
+                    {f.required && (
+                      <span className="text-xs text-red-400 font-semibold">필수</span>
+                    )}
+                  </div>
+                  {f.options && f.options.length > 0 && (
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">
+                      선택지: {f.options.join(', ')}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => toggleRequired(f.id)}
+                    className={`text-xs px-2 py-0.5 rounded-full font-semibold border transition-all ${
+                      f.required
+                        ? 'border-red-300 text-red-500 bg-red-50'
+                        : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                    }`}
+                  >
+                    {f.required ? '필수' : '선택'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeField(f.id)}
+                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {customFields.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">필드를 추가해주세요</p>
+            )}
+          </div>
+
+          {/* 새 필드 추가 폼 */}
+          {showAddField && (
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 space-y-3">
+              <p className="text-xs font-bold text-gray-600">새 필드 추가</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">필드 이름 *</label>
+                  <input
+                    type="text"
+                    placeholder="예) 동호수, 차량번호"
+                    value={newField.label}
+                    onChange={e => setNewField(p => ({ ...p, label: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#91ADC2]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">유형</label>
+                  <select
+                    value={newField.type}
+                    onChange={e => setNewField(p => ({ ...p, type: e.target.value as CustomFieldType }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#91ADC2]"
+                  >
+                    {(Object.entries(FIELD_TYPE_LABELS) as [CustomFieldType, string][]).map(([val, lbl]) => (
+                      <option key={val} value={val}>{lbl}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">안내 문구 (placeholder)</label>
+                <input
+                  type="text"
+                  placeholder="예) 101동 501호"
+                  value={newField.placeholder}
+                  onChange={e => setNewField(p => ({ ...p, placeholder: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#91ADC2]"
+                />
+              </div>
+              {newField.type === 'select' && (
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">선택지 (쉼표로 구분)</label>
+                  <input
+                    type="text"
+                    placeholder="예) 30평형, 40평형, 50평형"
+                    value={newField.options}
+                    onChange={e => setNewField(p => ({ ...p, options: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#91ADC2]"
+                  />
+                </div>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newField.required}
+                  onChange={e => setNewField(p => ({ ...p, required: e.target.checked }))}
+                  className="accent-[#91ADC2]"
+                />
+                <span className="text-sm text-gray-600">필수 입력</span>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowAddField(false); setNewField({ label: '', type: 'text', required: false, placeholder: '', options: '' }); }}
+                  className="flex-1 py-2 text-sm rounded-lg bg-white border border-gray-200 text-gray-600 font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={addCustomField}
+                  disabled={!newField.label.trim()}
+                  className="flex-1 py-2 text-sm rounded-lg text-white font-semibold disabled:opacity-50"
+                  style={{ backgroundColor: '#91ADC2' }}
+                >
+                  추가
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3 pb-8">

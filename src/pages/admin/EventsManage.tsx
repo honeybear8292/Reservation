@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatDate } from '../../utils/helpers';
 
@@ -30,7 +30,7 @@ export default function EventsManage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#FFDAB9' }}>
-                {['행사명', '장소', '기간', '시간대', '예약 수', '상태', '관리'].map(h => (
+                {['행사명', '예약 URL', '기간', '시간대', '예약 수', '상태', '관리'].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-semibold text-gray-700">{h}</th>
                 ))}
               </tr>
@@ -45,8 +45,17 @@ export default function EventsManage() {
                     <td className="px-4 py-3 font-medium text-gray-800 max-w-xs">
                       <p className="truncate">{event.title}</p>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 max-w-[160px]">
-                      <p className="truncate">{event.venue}</p>
+                    <td className="px-4 py-3 max-w-[160px]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-gray-500 font-mono truncate">/e/{event.slug}</span>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/e/${event.slug}`)}
+                          className="shrink-0 p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+                          title="URL 복사"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                       <p className="text-xs">{formatDate(event.dates[0])}</p>
@@ -72,9 +81,9 @@ export default function EventsManage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        <button onClick={() => navigate(`/events/${event.id}`)}
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="미리보기">
-                          <Eye size={15} />
+                        <button onClick={() => navigate(`/e/${event.slug}`)}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500" title="행사 페이지">
+                          <ExternalLink size={15} />
                         </button>
                         <button onClick={() => navigate(`/admin/events/${event.id}/edit`)}
                           className="p-1.5 rounded-lg hover:bg-blue-50 text-gray-500 hover:text-blue-600" title="수정">
@@ -113,8 +122,8 @@ export default function EventsManage() {
                 <p className="text-xs text-gray-400 mt-0.5">{formatDate(event.dates[0])}</p>
                 <p className="text-xs font-semibold mt-1" style={{ color: '#91ADC2' }}>예약 {confirmed}건</p>
                 <div className="flex gap-2 mt-3">
-                  <button onClick={() => navigate(`/events/${event.id}`)}
-                    className="flex-1 py-2 text-xs rounded-lg bg-gray-100 text-gray-600 font-medium">보기</button>
+                  <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/e/${event.slug}`)}
+                    className="flex-1 py-2 text-xs rounded-lg bg-gray-100 text-gray-600 font-medium">URL 복사</button>
                   <button onClick={() => navigate(`/admin/events/${event.id}/edit`)}
                     className="flex-1 py-2 text-xs rounded-lg text-white font-medium"
                     style={{ backgroundColor: '#91ADC2' }}>수정</button>
