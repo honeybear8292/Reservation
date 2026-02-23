@@ -6,7 +6,7 @@ export default function Footer() {
   if (location.pathname.startsWith('/admin')) return null;
 
   return (
-    <footer style={{ backgroundColor: '#FFDAB9' }} className="mt-16">
+    <footer style={{ backgroundColor: '#FFDAB9' }}>
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row justify-between gap-6">
           <div>
@@ -15,14 +15,14 @@ export default function Footer() {
               <span className="font-bold text-lg" style={{ color: '#91ADC2' }}>ReserveTicket</span>
             </div>
             <p className="text-sm text-gray-600 max-w-xs">
-              전시, 공연, 콘서트, 컨퍼런스 등 다양한 이벤트를 간편하게 예약하세요.
+              모델하우스·분양사무소·입주박람회 방문 예약을 간편하게 관리하세요.
             </p>
           </div>
           <div className="flex flex-col md:flex-row gap-8 text-sm text-gray-600">
             <div>
               <p className="font-semibold text-gray-700 mb-2">서비스</p>
-              <p>이벤트 예약</p>
-              <p>내 티켓 조회</p>
+              <p>방문 예약</p>
+              <p>내 예약 확인</p>
               <p>예약 취소</p>
             </div>
             <div>
