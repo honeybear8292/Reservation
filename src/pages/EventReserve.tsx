@@ -44,6 +44,7 @@ export default function EventReserve() {
   };
 
   const allRequiredFilled = event.customFields.filter(f => f.required).every(f => (fieldValues[f.key] ?? '').trim() !== '');
+  const getFieldValue = (key: string) => fieldValues[key] ?? '';
   const nameValue = getFieldValue('name');
   const phoneValue = getFieldValue('phone');
   const emailValue = getFieldValue('email');
@@ -61,8 +62,6 @@ export default function EventReserve() {
     if (key === 'unitNumber' && unitDuplicate) return '이미 예약한 동호수 입니다.';
     return undefined;
   };
-
-  const getFieldValue = (key: string) => fieldValues[key] ?? '';
 
   const canNext = (() => {
     if (step === 1) return selectedDate !== '';
