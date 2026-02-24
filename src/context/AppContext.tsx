@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { Event, Reservation } from '../types';
-import { getEvents, saveEvents, getReservations, saveReservations } from '../utils/storage';
+import type { Event, Reservation, CompanyInfo } from '../types';
+import { getEvents, saveEvents, getReservations, saveReservations, getCompanyInfo, saveCompanyInfo } from '../utils/storage';
 import { SEED_EVENTS } from '../utils/seedData';
 import {
   apiGetEvents,
@@ -16,12 +16,14 @@ import {
 interface AppContextType {
   events: Event[];
   reservations: Reservation[];
+  companyInfo: CompanyInfo;
   addEvent: (event: Event) => void;
   updateEvent: (event: Event) => void;
   deleteEvent: (id: string) => void;
   addReservation: (r: Reservation) => void;
   cancelReservation: (id: string) => void;
   checkIn: (id: string) => void;
+  updateCompanyInfo: (info: CompanyInfo) => void;
   getEventById: (id: string) => Event | undefined;
   getEventBySlug: (slug: string) => Event | undefined;
   getUserReservations: (phone: string) => Reservation[];
@@ -40,6 +42,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return stored;
   });
   const [reservations, setReservations] = useState<Reservation[]>(() => getReservations());
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(() => getCompanyInfo());
 
   useEffect(() => {
     let disposed = false;
@@ -143,6 +146,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     void apiCheckInReservation(id, checkedInAt).catch(() => undefined);
   }, []);
 
+  const updateCompanyInfo = useCallback((info: CompanyInfo) => {
+    setCompanyInfo(info);
+    saveCompanyInfo(info);
+  }, []);
+
   const getEventById = useCallback((id: string) => events.find(e => e.id === id), [events]);
   const getEventBySlug = useCallback((slug: string) => events.find(e => e.slug === slug), [events]);
   const getUserReservations = useCallback((phone: string) =>
@@ -152,9 +160,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      events, reservations,
+      events, reservations, companyInfo,
       addEvent, updateEvent, deleteEvent,
       addReservation, cancelReservation, checkIn,
+      updateCompanyInfo,
       getEventById, getEventBySlug,
       getUserReservations, getEventReservationsByPhone,
     }}>

@@ -4,7 +4,7 @@ import {
   Container, Title, Text, Button, Group, Modal, TextInput, Paper, Grid, RingProgress, ThemeIcon
 } from '@mantine/core';
 import {
-  IconChevronRight, IconTicket, IconPhone, IconFileText, IconUsers,
+  IconChevronRight, IconTicket, IconPhone, IconFileText,
   IconQrcode, IconCheck, IconX, IconLock,
 } from '@tabler/icons-react';
 import { useApp } from '../context/AppContext';
@@ -16,7 +16,7 @@ type LookupResult = Reservation | 'not-found' | null;
 
 export default function Home() {
   const navigate = useNavigate();
-  const { reservations, checkIn } = useApp();
+  const { reservations, checkIn, companyInfo } = useApp();
   const loggedIn = isAdminLoggedIn();
 
   const [qrOpen, setQrOpen] = useState(false);
@@ -171,10 +171,10 @@ export default function Home() {
             <Grid.Col span={{ base: 12, md: 8}}>
                 <Grid>
                     <Grid.Col span={{ base: 12, sm: 6 }}>
-                        <Text fw={700} mb="sm">서비스</Text>
-                        <Text><IconUsers size={14} /> 방문 예약</Text>
-                        <Text><IconFileText size={14} /> 내 예약 확인</Text>
-                        <Text><IconFileText size={14} /> 예약 취소</Text>
+                        <Text fw={700} mb="sm">회사정보</Text>
+                        <Text><IconFileText size={14} /> {companyInfo.name || '회사명 미입력'}</Text>
+                        <Text><IconFileText size={14} /> {companyInfo.address || '회사 주소 미입력'}</Text>
+                        <Text><IconFileText size={14} /> {companyInfo.email || '회사 이메일 미입력'}</Text>
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, sm: 6 }}>
                         <Text fw={700} mb="sm">고객지원</Text>

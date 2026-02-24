@@ -1,9 +1,11 @@
 import { Ticket } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export default function Footer() {
   const location = useLocation();
-  if (location.pathname === '/' || location.pathname.startsWith('/admin')) return null;
+  if (location.pathname.startsWith('/admin')) return null;
+  const { companyInfo } = useApp();
 
   return (
     <footer style={{ backgroundColor: '#E0D6F9' }}>
@@ -15,15 +17,15 @@ export default function Footer() {
               <span className="font-bold text-lg" style={{ color: '#667EEA' }}>ReserveTicket</span>
             </div>
             <p className="text-sm text-gray-600 max-w-xs">
-              모델하우스·분양사무소·입주박람회 방문 예약을 간편하게 관리하세요.
+              성공적인 입주 박람회를 위한 최고의 선택, ReserveTicket과 함께하세요.
             </p>
           </div>
           <div className="flex flex-col md:flex-row gap-8 text-sm text-gray-600">
             <div>
-              <p className="font-semibold text-gray-700 mb-2">서비스</p>
-              <p>방문 예약</p>
-              <p>내 예약 확인</p>
-              <p>예약 취소</p>
+              <p className="font-semibold text-gray-700 mb-2">회사정보</p>
+              <p>{companyInfo.name || '회사명 미입력'}</p>
+              <p>{companyInfo.address || '회사 주소 미입력'}</p>
+              <p>{companyInfo.email || '회사 이메일 미입력'}</p>
             </div>
             <div>
               <p className="font-semibold text-gray-700 mb-2">고객지원</p>

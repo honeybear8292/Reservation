@@ -23,6 +23,21 @@ export default function EventDetail() {
     );
   }
 
+  const getTimeRange = () => {
+    if (event.startTime || event.endTime) {
+      const start = event.startTime || '시간 미지정';
+      const end = event.endTime || '시간 미지정';
+      return `${start} ~ ${end}`;
+    }
+    const slots = event.timeSlots ?? [];
+    if (slots.length === 0) return '시간 미지정';
+    const first = slots[0]?.time;
+    const last = slots[slots.length - 1]?.time;
+    if (!first || !last) return '시간 미지정';
+    if (first === '시간 미지정' && last === '시간 미지정') return '시간 미지정';
+    return `${first} ~ ${last}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <button
@@ -60,9 +75,7 @@ export default function EventDetail() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={16} style={{ color: '#667EEA' }} />
-                <span>
-                  {event.timeSlots[0]?.time} ~ {event.timeSlots[event.timeSlots.length - 1]?.time}
-                </span>
+                <span>{getTimeRange()}</span>
               </div>
             </div>
 
@@ -82,7 +95,7 @@ export default function EventDetail() {
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl shadow-md p-5 sticky top-20">
               <h2 className="font-bold text-gray-800 mb-2">방문 예약</h2>
-              <p className="text-sm text-gray-500 mb-5">원하는 날짜를 선택해 예약하세요.</p>
+              <p className="text-sm text-gray-500 mb-5">원하는 날짜를 선택해 예약해주세요.</p>
 
               <button
                 onClick={() => event.status === 'active' && navigate(`/reserve/${event.id}`)}

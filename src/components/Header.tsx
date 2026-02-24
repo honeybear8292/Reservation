@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Menu, X, Ticket } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { adminLogout, isAdminLoggedIn } from '../utils/storage';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -9,6 +10,19 @@ export default function Header() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const { getEventBySlug } = useApp();
+  const [adminLoggedIn, setAdminLoggedIn] = useState(isAdminLoggedIn());
+
+  useEffect(() => {
+    const refresh = () => setAdminLoggedIn(isAdminLoggedIn());
+    refresh();
+    window.addEventListener('storage', refresh);
+    const onVisibility = () => refresh();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('storage', refresh);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   // 관리자 페이지에서는 헤더 숨김
   if (location.pathname.startsWith('/admin')) return null;
@@ -44,6 +58,15 @@ export default function Header() {
   const isReservePage = location.pathname.startsWith('/reserve/');
   const lockBrandLink = isEventDetailPage || isReservePage;
 
+  const handleAdminAction = () => {
+    if (adminLoggedIn) {
+      adminLogout();
+      setAdminLoggedIn(false);
+      return;
+    }
+    navigate('/admin');
+  };
+
   // 일반 공개 페이지 (홈 등)
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -61,11 +84,11 @@ export default function Header() {
         )}
         <div className="hidden md:flex items-center gap-4">
           <button
-            onClick={() => navigate('/admin')}
+            onClick={handleAdminAction}
             className="px-4 py-2 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#667EEA' }}
           >
-            관리자 로그인
+            {adminLoggedIn ? '관리자 로그아웃' : '관리자 로그인'}
           </button>
         </div>
         <button className="md:hidden p-2 text-gray-600" onClick={() => setMenuOpen(!menuOpen)}>
@@ -75,11 +98,11 @@ export default function Header() {
       {menuOpen && (
         <div className="md:hidden bg-white border-t px-4 py-3">
           <button
-            onClick={() => { navigate('/admin'); setMenuOpen(false); }}
+            onClick={() => { handleAdminAction(); setMenuOpen(false); }}
             className="w-full py-2.5 rounded-lg text-white font-medium text-center"
             style={{ backgroundColor: '#667EEA' }}
           >
-            관리자 로그인
+            {adminLoggedIn ? '관리자 로그아웃' : '관리자 로그인'}
           </button>
         </div>
       )}

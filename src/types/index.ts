@@ -25,6 +25,8 @@ export interface Event {
   venue: string;
   address: string;
   dates: string[];
+  startTime?: string;
+  endTime?: string;
   timeSlots: TimeSlotDef[];
   customFields: CustomField[];   // 행사별 커스텀 수집 필드
   status: 'active' | 'closed' | 'draft';
@@ -53,4 +55,10 @@ export interface Reservation {
   checkedIn: boolean;
   checkedInAt?: string;
   createdAt: string;
+}
+
+export interface CompanyInfo {
+  name: string;
+  address: string;
+  email: string;
 }

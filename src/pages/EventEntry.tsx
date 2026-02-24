@@ -33,6 +33,21 @@ export default function EventEntry() {
     );
   }
 
+  const getTimeRange = () => {
+    if (event.startTime || event.endTime) {
+      const start = event.startTime || '시간 미지정';
+      const end = event.endTime || '시간 미지정';
+      return `${start} ~ ${end}`;
+    }
+    const slots = event.timeSlots ?? [];
+    if (slots.length === 0) return '시간 미지정';
+    const first = slots[0]?.time;
+    const last = slots[slots.length - 1]?.time;
+    if (!first || !last) return '시간 미지정';
+    if (first === '시간 미지정' && last === '시간 미지정') return '시간 미지정';
+    return `${first} ~ ${last}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
@@ -61,8 +76,7 @@ export default function EventEntry() {
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Clock size={15} style={{ color: '#667EEA' }} />
-            <span>{event.timeSlots[0]?.time} ~ {event.timeSlots[event.timeSlots.length - 1]?.time}</span>
-            <span className="text-gray-400">({event.timeSlots.length}개 시간대)</span>
+            <span>{getTimeRange()}</span>
           </div>
         </div>
 

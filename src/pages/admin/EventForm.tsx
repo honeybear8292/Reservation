@@ -61,10 +61,23 @@ export default function EventForm() {
   const existing = isEdit ? getEventById(id) : undefined;
   const [eventId] = useState(existing?.id ?? generateId());
 
+  const existingSlots = existing?.timeSlots ?? [];
+  const initialStartTime = existing?.startTime
+    ?? (existingSlots[0]?.time && existingSlots[0].time !== '시간 미지정'
+      ? existingSlots[0].time
+      : '');
+  const initialEndTime = existing?.endTime
+    ?? (existingSlots[existingSlots.length - 1]?.time
+      && existingSlots[existingSlots.length - 1].time !== '시간 미지정'
+      ? existingSlots[existingSlots.length - 1].time
+      : '');
+
   const [title, setTitle] = useState(existing?.title ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
   const [venue, setVenue] = useState(existing?.venue ?? '');
   const [address, setAddress] = useState(existing?.address ?? '');
+  const [startTime, setStartTime] = useState(initialStartTime);
+  const [endTime, setEndTime] = useState(initialEndTime);
   const [startDate, setStartDate] = useState(existing?.dates[0] ?? '');
   const [endDate, setEndDate] = useState(existing?.dates[existing?.dates.length - 1] ?? '');
   const [status, setStatus] = useState<'active' | 'closed' | 'draft'>(existing?.status ?? 'active');
@@ -127,6 +140,8 @@ export default function EventForm() {
       slug,
       title, description, venue, address,
       dates,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
       timeSlots: DEFAULT_TIME_SLOT,
       customFields: normalizeBaseFields(customFields),
       status,
@@ -176,6 +191,26 @@ export default function EventForm() {
             <label className={labelCls}>주소</label>
             <input className={inputCls} value={address} onChange={e => setAddress(e.target.value)}
               placeholder="예) 경기도 성남시 분당구 판교역로 146" />
+          </div>
+
+          <div>
+            <label className={labelCls}>행사 진행 시간</label>
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="time"
+                className={inputCls}
+                value={startTime}
+                onChange={e => setStartTime(e.target.value)}
+                placeholder="시작 시간"
+              />
+              <input
+                type="time"
+                className={inputCls}
+                value={endTime}
+                onChange={e => setEndTime(e.target.value)}
+                placeholder="종료 시간"
+              />
+            </div>
           </div>
 
           <div>

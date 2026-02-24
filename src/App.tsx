@@ -19,6 +19,7 @@ import ReservationsManage from './pages/admin/ReservationsManage';
 import CheckIn from './pages/admin/CheckIn';
 import Statistics from './pages/admin/Statistics';
 import Settlement from './pages/admin/Settlement';
+import CompanyInfo from './pages/admin/CompanyInfo';
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="checkin" element={<CheckIn />} />
             <Route path="statistics" element={<Statistics />} />
             <Route path="settlement" element={<Settlement />} />
+            <Route path="company" element={<CompanyInfo />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" />} />
