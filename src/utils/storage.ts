@@ -9,7 +9,8 @@ const COMPANY_INFO_KEY = 'rv_company_info';
 const BASE_FIELDS: CustomField[] = [
   { id: 'bf1', key: 'name', label: '이름', type: 'text', placeholder: '홍길동', required: true },
   { id: 'bf2', key: 'phone', label: '연락처', type: 'tel', placeholder: '01012345678', required: true },
-  { id: 'bf3', key: 'unitNumber', label: '동호수', type: 'text', placeholder: '예) 101동 501호', required: true },
+  { id: 'bf3', key: 'email', label: '이메일', type: 'email', placeholder: 'example@email.com', required: true },
+  { id: 'bf4', key: 'unitNumber', label: '동호수', type: 'text', placeholder: '예) 101동 501호', required: true },
 ];
 const BASE_FIELD_KEYS = new Set(BASE_FIELDS.map(f => f.key));
 const ensureBaseFields = (fields: CustomField[]): CustomField[] => {

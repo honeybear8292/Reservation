@@ -37,3 +37,43 @@ export const getEventShareUrl = (eventId: string): string => {
   const base = getPublicBaseUrl();
   return `${base}/events/${eventId}`;
 };
+
+export interface UnitNumberParts {
+  building?: string;
+  unit?: string;
+}
+
+export const parseUnitNumber = (raw: string): UnitNumberParts => {
+  const input = (raw ?? '').trim();
+  if (!input) return {};
+
+  const normalized = input.replace(/\s+/g, '');
+  const dongHo = normalized.match(/(\d+)\s*동\s*(\d+)\s*호/);
+  if (dongHo) return { building: dongHo[1], unit: dongHo[2] };
+
+  const hoDong = normalized.match(/(\d+)\s*호\s*(\d+)\s*동/);
+  if (hoDong) return { building: hoDong[2], unit: hoDong[1] };
+
+  const numbers = normalized.split(/[^0-9]+/).filter(Boolean);
+  if (numbers.length >= 2) return { building: numbers[0], unit: numbers[1] };
+  if (numbers.length === 1) return { unit: numbers[0] };
+  return {};
+};
+
+export const normalizeUnitNumber = (raw: string): string => {
+  const { building, unit } = parseUnitNumber(raw);
+  if (building && unit) return `${building}-${unit}`;
+  if (unit) return `unit-${unit}`;
+  return '';
+};
+
+export const isValidKoreanName = (value: string): boolean =>
+  /^[가-힣]{2,}$/.test((value ?? '').trim());
+
+export const isValidPhone010 = (value: string): boolean => {
+  const digits = (value ?? '').replace(/\D/g, '');
+  return /^010\d{8}$/.test(digits);
+};
+
+export const isValidEmail = (value: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value ?? '').trim());

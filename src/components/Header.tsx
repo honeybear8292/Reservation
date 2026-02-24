@@ -83,6 +83,15 @@ export default function Header() {
           </Link>
         )}
         <div className="hidden md:flex items-center gap-4">
+          {adminLoggedIn && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90"
+              style={{ backgroundColor: '#667EEA' }}
+            >
+              관리자 페이지
+            </button>
+          )}
           <button
             onClick={handleAdminAction}
             className="px-4 py-2 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90"
@@ -97,6 +106,15 @@ export default function Header() {
       </div>
       {menuOpen && (
         <div className="md:hidden bg-white border-t px-4 py-3">
+          {adminLoggedIn && (
+            <button
+              onClick={() => { navigate('/admin'); setMenuOpen(false); }}
+              className="w-full py-2.5 rounded-lg text-white font-medium text-center mb-2"
+              style={{ backgroundColor: '#667EEA' }}
+            >
+              관리자 페이지
+            </button>
+          )}
           <button
             onClick={() => { handleAdminAction(); setMenuOpen(false); }}
             className="w-full py-2.5 rounded-lg text-white font-medium text-center"

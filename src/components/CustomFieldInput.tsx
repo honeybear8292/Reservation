@@ -4,11 +4,12 @@ interface Props {
   field: CustomField;
   value: string;
   onChange: (key: string, value: string) => void;
+  error?: string;
 }
 
 const inputCls = "w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#667EEA]";
 
-export default function CustomFieldInput({ field, value, onChange }: Props) {
+export default function CustomFieldInput({ field, value, onChange, error }: Props) {
   return (
     <div>
       <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -35,6 +36,7 @@ export default function CustomFieldInput({ field, value, onChange }: Props) {
           className={inputCls}
         />
       )}
+      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
     </div>
   );
 }

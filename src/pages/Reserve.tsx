@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import StepIndicator from '../components/StepIndicator';
 import QRTicket from '../components/QRTicket';
-import { formatDate, generateId } from '../utils/helpers';
+import { formatDate, generateId, normalizeUnitNumber, isValidEmail, isValidKoreanName, isValidPhone010 } from '../utils/helpers';
 import type { Reservation } from '../types';
 
 const STEPS = ['날짜 선택', '예약자 정보', '예약 완료'];
@@ -20,7 +20,7 @@ interface CustomerForm {
 export default function Reserve() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getEventById, addReservation } = useApp();
+  const { getEventById, addReservation, reservations } = useApp();
   const event = getEventById(id ?? '');
 
   const [step, setStep] = useState(1);
@@ -32,20 +32,50 @@ export default function Reserve() {
     unitNumber: '',
     agree: false,
   });
+  const [showErrors, setShowErrors] = useState(false);
+  const [unitDuplicate, setUnitDuplicate] = useState(false);
   const [completed, setCompleted] = useState<Reservation | null>(null);
 
   if (!event) return (
     <div className="min-h-screen flex items-center justify-center text-gray-500">행사를 찾을 수 없습니다.</div>
   );
 
+  const isValidName = isValidKoreanName(customer.name);
+  const isValidPhone = isValidPhone010(customer.phone);
+  const isValidMail = isValidEmail(customer.email);
+
+  const getFieldError = (key: keyof CustomerForm): string | undefined => {
+    const value = customer[key];
+    const shouldShow = showErrors || (typeof value === 'string' && value.trim() !== '');
+    if (!shouldShow) return undefined;
+    if (key === 'name' && !isValidName) return '이름은 한글 2글자 이상으로 입력해주세요.';
+    if (key === 'phone' && !isValidPhone) return '휴대폰 번호는 010으로 시작하는 11자리여야 합니다.';
+    if (key === 'email' && !isValidMail) return '이메일 형식을 확인해주세요.';
+    return undefined;
+  };
+
   const canNext = (() => {
     if (step === 1) return selectedDate !== '';
-    if (step === 2) return customer.name && customer.phone && customer.email && customer.unitNumber && customer.agree;
+    if (step === 2) return isValidName && isValidPhone && isValidMail && customer.unitNumber && customer.agree;
     return false;
   })();
 
   const handleNext = () => {
     if (step === 2) {
+        if (!isValidName || !isValidPhone || !isValidMail) {
+          setShowErrors(true);
+          return;
+        }
+        const normalizedUnit = normalizeUnitNumber(customer.unitNumber);
+        const hasDuplicate = normalizedUnit !== '' && reservations.some(r =>
+          r.eventId === event.id
+          && r.date === selectedDate
+          && normalizeUnitNumber(r.extraFields?.unitNumber ?? '') === normalizedUnit
+        );
+        if (hasDuplicate) {
+          setUnitDuplicate(true);
+          return;
+        }
         const reservation: Reservation = {
         id: generateId(),
         eventId: event.id,
@@ -67,6 +97,8 @@ export default function Reserve() {
       setStep(3);
       return;
     }
+    setShowErrors(false);
+    setUnitDuplicate(false);
     setStep(s => s + 1);
   };
 
@@ -149,9 +181,18 @@ export default function Reserve() {
                     type={type}
                     placeholder={placeholder}
                     value={customer[key]}
-                    onChange={e => setCustomer(prev => ({ ...prev, [key]: e.target.value }))}
+                    onChange={e => {
+                      setCustomer(prev => ({ ...prev, [key]: e.target.value }));
+                      if (key === 'unitNumber') setUnitDuplicate(false);
+                    }}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#667EEA] text-sm"
                   />
+                  {getFieldError(key) && (
+                    <p className="text-xs text-red-500 mt-1.5">{getFieldError(key)}</p>
+                  )}
+                  {key === 'unitNumber' && unitDuplicate && (
+                    <p className="text-xs text-red-500 mt-1.5">이미 예약한 동호수 입니다.</p>
+                  )}
                 </div>
               ))}
 

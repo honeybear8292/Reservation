@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext';
 import StepIndicator from '../components/StepIndicator';
 import CustomFieldInput from '../components/CustomFieldInput';
 import QRTicket from '../components/QRTicket';
-import { formatDate, generateId } from '../utils/helpers';
+import { formatDate, generateId, normalizeUnitNumber, isValidEmail, isValidKoreanName, isValidPhone010 } from '../utils/helpers';
 import type { Reservation } from '../types';
 
 const STEPS = ['날짜 선택', '예약 정보', '예약 완료'];
@@ -13,7 +13,7 @@ const STEPS = ['날짜 선택', '예약 정보', '예약 완료'];
 export default function EventReserve() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { getEventBySlug, addReservation } = useApp();
+  const { getEventBySlug, addReservation, reservations } = useApp();
   const event = getEventBySlug(slug ?? '');
 
   const [step, setStep] = useState(1);
@@ -21,6 +21,8 @@ export default function EventReserve() {
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [agree, setAgree] = useState(false);
   const [completed, setCompleted] = useState<Reservation | null>(null);
+  const [showErrors, setShowErrors] = useState(false);
+  const [unitDuplicate, setUnitDuplicate] = useState(false);
 
   if (!event || event.status !== 'active') {
     return (
@@ -38,20 +40,52 @@ export default function EventReserve() {
 
   const handleFieldChange = (key: string, value: string) => {
     setFieldValues(prev => ({ ...prev, [key]: value }));
+    if (key === 'unitNumber') setUnitDuplicate(false);
   };
 
   const allRequiredFilled = event.customFields.filter(f => f.required).every(f => (fieldValues[f.key] ?? '').trim() !== '');
+  const nameValue = getFieldValue('name');
+  const phoneValue = getFieldValue('phone');
+  const emailValue = getFieldValue('email');
+  const isValidName = isValidKoreanName(nameValue);
+  const isValidPhone = isValidPhone010(phoneValue);
+  const isValidMail = isValidEmail(emailValue);
+
+  const getFieldError = (key: string): string | undefined => {
+    const value = getFieldValue(key);
+    const shouldShow = showErrors || value.trim() !== '';
+    if (!shouldShow) return undefined;
+    if (key === 'name' && !isValidName) return '이름은 한글 2글자 이상으로 입력해주세요.';
+    if (key === 'phone' && !isValidPhone) return '휴대폰 번호는 010으로 시작하는 11자리여야 합니다.';
+    if (key === 'email' && !isValidMail) return '이메일 형식을 확인해주세요.';
+    if (key === 'unitNumber' && unitDuplicate) return '이미 예약한 동호수 입니다.';
+    return undefined;
+  };
 
   const getFieldValue = (key: string) => fieldValues[key] ?? '';
 
   const canNext = (() => {
     if (step === 1) return selectedDate !== '';
-    if (step === 2) return allRequiredFilled && agree;
+    if (step === 2) return allRequiredFilled && agree && isValidName && isValidPhone && isValidMail;
     return false;
   })();
 
   const handleNext = () => {
     if (step === 2) {
+      if (!isValidName || !isValidPhone || !isValidMail) {
+        setShowErrors(true);
+        return;
+      }
+      const normalizedUnit = normalizeUnitNumber(fieldValues.unitNumber ?? '');
+      const hasDuplicate = normalizedUnit !== '' && reservations.some(r =>
+        r.eventId === event.id
+        && r.date === selectedDate
+        && normalizeUnitNumber(r.extraFields?.unitNumber ?? '') === normalizedUnit
+      );
+      if (hasDuplicate) {
+        setUnitDuplicate(true);
+        return;
+      }
       const customer = {
         name: getFieldValue('name'),
         phone: getFieldValue('phone'),
@@ -79,6 +113,8 @@ export default function EventReserve() {
       setStep(3);
       return;
     }
+    setShowErrors(false);
+    setUnitDuplicate(false);
     setStep(s => s + 1);
   };
 
@@ -145,6 +181,7 @@ export default function EventReserve() {
                   field={field}
                   value={fieldValues[field.key] ?? ''}
                   onChange={handleFieldChange}
+                  error={getFieldError(field.key)}
                 />
               ))}
 
