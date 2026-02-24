@@ -1,15 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { formatDate } from '../../utils/helpers';
 import QRTicket from '../../components/QRTicket';
 import type { Reservation } from '../../types';
 
 export default function ReservationsManage() {
-  const { reservations, cancelReservation } = useApp();
+  const { events, reservations, cancelReservation } = useApp();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [eventFilter, setEventFilter] = useState(searchParams.get('eventId') ?? 'all');
   const [selected, setSelected] = useState<Reservation | null>(null);
+
+  useEffect(() => {
+    const next = searchParams.get('eventId') ?? 'all';
+    setEventFilter(next);
+  }, [searchParams]);
+
+  const eventOptions = useMemo(() => (
+    events.map(e => ({ id: e.id, title: e.title }))
+  ), [events]);
 
   const filtered = reservations.filter(r => {
     const matchSearch =
@@ -18,8 +30,20 @@ export default function ReservationsManage() {
       r.customer.phone.includes(search) ||
       r.id.includes(search);
     const matchStatus = statusFilter === 'all' || r.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchEvent = eventFilter === 'all' || r.eventId === eventFilter;
+    return matchSearch && matchStatus && matchEvent;
   }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const updateEventFilter = (next: string) => {
+    setEventFilter(next);
+    const params = new URLSearchParams(searchParams);
+    if (next === 'all') {
+      params.delete('eventId');
+    } else {
+      params.set('eventId', next);
+    }
+    setSearchParams(params);
+  };
 
   const handleCancel = (id: string) => {
     if (confirm('이 예약을 취소하시겠습니까?')) {
@@ -44,6 +68,16 @@ export default function ReservationsManage() {
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#667EEA]"
           />
         </div>
+        <select
+          value={eventFilter}
+          onChange={e => updateEventFilter(e.target.value)}
+          className="min-w-[180px] px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white"
+        >
+          <option value="all">모든 행사</option>
+          {eventOptions.map(e => (
+            <option key={e.id} value={e.id}>{e.title}</option>
+          ))}
+        </select>
         <div className="flex gap-2">
           {[
             { value: 'all', label: '전체' },
@@ -72,14 +106,14 @@ export default function ReservationsManage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ backgroundColor: '#E0D6F9' }}>
-                {['예약번호', '행사명', '예약자', '방문날짜', '방문시간', '상태', '입장', ''].map(h => (
+                {['예약번호', '행사명', '예약자', '방문날짜', '상태', '입장', ''].map(h => (
                   <th key={h} className="px-3 py-3 text-left font-semibold text-gray-700 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-gray-400">예약 내역이 없습니다</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400">예약 내역이 없습니다</td></tr>
               ) : filtered.map(r => (
                 <tr key={r.id} className={`hover:bg-gray-50 transition-colors ${r.checkedIn ? 'bg-green-50' : ''}`}>
                   <td className="px-3 py-3 font-mono text-xs text-gray-400">{r.id.slice(0, 8).toUpperCase()}</td>
@@ -91,7 +125,6 @@ export default function ReservationsManage() {
                     <p className="text-xs text-gray-400">{r.customer.phone}</p>
                   </td>
                   <td className="px-3 py-3 text-gray-600 whitespace-nowrap">{formatDate(r.date)}</td>
-                  <td className="px-3 py-3 font-bold whitespace-nowrap" style={{ color: '#667EEA' }}>{r.time}</td>
                   <td className="px-3 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                       r.status === 'confirmed' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
@@ -140,7 +173,7 @@ export default function ReservationsManage() {
                   {r.status === 'confirmed' ? '확정' : '취소'}
                 </span>
               </div>
-              <p className="text-xs text-gray-500">{formatDate(r.date)} · {r.time}</p>
+              <p className="text-xs text-gray-500">{formatDate(r.date)}</p>
               {r.checkedIn && (
                 <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">입장완료</span>
               )}

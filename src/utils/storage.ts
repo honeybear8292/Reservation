@@ -26,6 +26,7 @@ const ensureBaseFields = (fields: CustomField[]): CustomField[] => {
 const migrateEvent = (e: Record<string, unknown>): Event => ({
   ...(e as unknown as Event),
   slug: (e.slug as string) ?? generateSlug(),
+  shareDomain: typeof e.shareDomain === 'string' ? (e.shareDomain as string) : undefined,
   customFields: ensureBaseFields((e.customFields as Event['customFields']) ?? []),
 });
 

@@ -24,3 +24,16 @@ export const formatPhone = (phone: string): string => {
   if (c.length === 10) return `${c.slice(0, 3)}-${c.slice(3, 6)}-${c.slice(6)}`;
   return phone;
 };
+
+export const getPublicBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_PUBLIC_SITE_URL || import.meta.env.VITE_PUBLIC_BASE_URL;
+  if (typeof envUrl === 'string' && envUrl.trim() !== '') {
+    return envUrl.replace(/\/+$/, '');
+  }
+  return window.location.origin;
+};
+
+export const getEventShareUrl = (eventId: string): string => {
+  const base = getPublicBaseUrl();
+  return `${base}/events/${eventId}`;
+};

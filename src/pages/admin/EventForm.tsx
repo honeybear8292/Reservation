@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Trash2, ChevronLeft, Copy, GripVertical } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { generateId, generateSlug } from '../../utils/helpers';
+import { generateId, generateSlug, getEventShareUrl } from '../../utils/helpers';
 import type { Event, CustomField, CustomFieldType } from '../../types';
 
 function generateDateRange(start: string, end: string): string[] {
@@ -59,6 +59,7 @@ export default function EventForm() {
   const { getEventById, addEvent, updateEvent } = useApp();
   const isEdit = id !== undefined && id !== 'create';
   const existing = isEdit ? getEventById(id) : undefined;
+  const [eventId] = useState(existing?.id ?? generateId());
 
   const [title, setTitle] = useState(existing?.title ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
@@ -76,6 +77,7 @@ export default function EventForm() {
     label: '', type: 'text', required: false, placeholder: '', options: '',
   });
   const [urlCopied, setUrlCopied] = useState(false);
+  const shareUrl = getEventShareUrl(eventId);
 
   const addCustomField = () => {
     if (!newField.label.trim()) return;
@@ -109,7 +111,7 @@ export default function EventForm() {
     }));
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/e/${slug}`);
+    navigator.clipboard.writeText(shareUrl);
     setUrlCopied(true);
     setTimeout(() => setUrlCopied(false), 2000);
   };
@@ -121,7 +123,7 @@ export default function EventForm() {
     if (customFields.length === 0) { alert('예약 정보 필드를 최소 1개 이상 추가해주세요.'); return; }
 
     const event: Event = {
-      id: isEdit ? id : generateId(),
+      id: eventId,
       slug,
       title, description, venue, address,
       dates,
@@ -190,7 +192,7 @@ export default function EventForm() {
             <label className={labelCls}>예약 공유 URL</label>
             <div className="flex gap-2">
               <div className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm font-mono text-gray-600 truncate">
-                {window.location.origin}/e/{slug}
+                {shareUrl}
               </div>
               <button
                 type="button"

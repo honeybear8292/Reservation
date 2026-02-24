@@ -40,14 +40,25 @@ export default function Header() {
     );
   }
 
+  const isEventDetailPage = location.pathname.startsWith('/events/');
+  const isReservePage = location.pathname.startsWith('/reserve/');
+  const lockBrandLink = isEventDetailPage || isReservePage;
+
   // 일반 공개 페이지 (홈 등)
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl" style={{ color: '#667EEA' }}>
-          <Ticket size={28} />
-          <span>ReserveTicket</span>
-        </Link>
+        {lockBrandLink ? (
+          <div className="flex items-center gap-2 font-bold text-xl" style={{ color: '#667EEA' }}>
+            <Ticket size={28} />
+            <span>ReserveTicket</span>
+          </div>
+        ) : (
+          <Link to="/" className="flex items-center gap-2 font-bold text-xl" style={{ color: '#667EEA' }}>
+            <Ticket size={28} />
+            <span>ReserveTicket</span>
+          </Link>
+        )}
         <div className="hidden md:flex items-center gap-4">
           <button
             onClick={() => navigate('/admin')}

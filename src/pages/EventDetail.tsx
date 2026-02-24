@@ -82,7 +82,7 @@ export default function EventDetail() {
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl shadow-md p-5 sticky top-20">
               <h2 className="font-bold text-gray-800 mb-2">방문 예약</h2>
-              <p className="text-sm text-gray-500 mb-5">원하는 날짜와 시간을 선택해 예약하세요</p>
+              <p className="text-sm text-gray-500 mb-5">원하는 날짜를 선택해 예약하세요.</p>
 
               <button
                 onClick={() => event.status === 'active' && navigate(`/reserve/${event.id}`)}
