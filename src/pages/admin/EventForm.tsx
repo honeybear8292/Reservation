@@ -48,16 +48,16 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <div className="flex items-center gap-1.5">
       <select value={parsed?.hour ?? ''} onChange={e => handleHour(e.target.value)} className={selCls}>
-        <option value="">시</option>
+        <option value="" disabled hidden>시</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
-          <option key={h} value={h}>{String(h).padStart(2, '0')}시</option>
+          <option key={h} value={h}>{String(h).padStart(2, '0')}</option>
         ))}
       </select>
       <span className="text-gray-400 font-bold">:</span>
       <select value={parsed?.minute ?? ''} onChange={e => handleMinute(e.target.value)} className={selCls}>
-        <option value="">분</option>
+        <option value="" disabled hidden>분</option>
         {Array.from({ length: 60 }, (_, i) => i).map(m => (
-          <option key={m} value={String(m).padStart(2, '0')}>{String(m).padStart(2, '0')}분</option>
+          <option key={m} value={String(m).padStart(2, '0')}>{String(m).padStart(2, '0')}</option>
         ))}
       </select>
     </div>
