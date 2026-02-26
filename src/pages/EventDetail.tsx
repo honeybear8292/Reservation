@@ -104,10 +104,19 @@ export default function EventDetail() {
               <h2 className="font-bold text-gray-800 mb-2">방문 예약</h2>
               <p className="text-sm text-gray-500 mb-5">원하는 날짜를 선택해 예약해주세요.</p>
 
+              {(event.vendorCategories?.length ?? 0) > 0 && (
+                <button
+                  onClick={() => navigate(`/e/${event.slug}/vendors`)}
+                  className="w-full mt-5 py-3.5 rounded-xl font-bold text-base transition-all hover:bg-gray-50 border-2"
+                  style={{ borderColor: '#667EEA', color: '#667EEA' }}
+                >
+                  입점 업체 확인하기
+                </button>
+              )}
               <button
                 onClick={() => event.status === 'active' && navigate(`/reserve/${event.id}`)}
                 disabled={event.status !== 'active'}
-                className="w-full mt-5 py-3.5 rounded-xl font-bold text-white text-base transition-all hover:opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="w-full mt-3 py-3.5 rounded-xl font-bold text-white text-base transition-all hover:opacity-90 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 style={{ backgroundColor: event.status === 'active' ? '#667EEA' : undefined }}
               >
                 {event.status === 'active' ? '방문 예약하기' : '예약 마감'}
