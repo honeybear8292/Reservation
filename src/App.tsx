@@ -10,6 +10,7 @@ import MyTickets from './pages/MyTickets';
 import EventEntry from './pages/EventEntry';
 import EventReserve from './pages/EventReserve';
 import EventTicket from './pages/EventTicket';
+import EventVendors from './pages/EventVendors';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './pages/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/e/:slug" element={<EventEntry />} />
           <Route path="/e/:slug/reserve" element={<EventReserve />} />
           <Route path="/e/:slug/ticket" element={<EventTicket />} />
+          <Route path="/e/:slug/vendors" element={<EventVendors />} />
 
           {/* Admin */}
           <Route path="/admin" element={<AdminLogin />} />

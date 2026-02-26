@@ -30,6 +30,8 @@ export interface Event {
   endTime?: string;
   timeSlots: TimeSlotDef[];
   customFields: CustomField[];   // 행사별 커스텀 수집 필드
+  vendorCategories?: VendorCategory[];
+  vendors?: Vendor[];
   status: 'active' | 'closed' | 'draft';
   createdAt: string;
 }
@@ -56,6 +58,18 @@ export interface Reservation {
   checkedIn: boolean;
   checkedInAt?: string;
   createdAt: string;
+}
+
+export interface VendorCategory {
+  id: string;
+  name: string; // 예: "가구", "방충망", "입주청소"
+}
+
+export interface Vendor {
+  id: string;
+  categoryId: string;
+  name: string;
+  imageUrl?: string;
 }
 
 export interface CompanyInfo {
