@@ -361,47 +361,27 @@ export default function EventForm() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {f.required ? (
-                    ALWAYS_REQUIRED_KEYS.has(f.key) ? (
-                      <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold border border-red-300 text-red-500 bg-red-50">
-                        필수
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => toggleRequired(f.id)}
-                        className="text-xs px-2.5 py-0.5 rounded-full font-semibold border border-red-300 text-red-500 bg-red-50 hover:bg-red-100 transition-colors"
-                      >
-                        필수
-                      </button>
-                    )
-                  ) : (
-                    BASE_FIELD_KEYS.has(f.key) ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleRequired(f.id)}
-                        className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-                      >
-                        선택
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => toggleRequired(f.id)}
-                          className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-                        >
-                          선택
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeField(f.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </>
-                    )
+                  {/* 선택|필수 토글 */}
+                  <div
+                    className={`flex rounded-full overflow-hidden border text-xs font-semibold ${ALWAYS_REQUIRED_KEYS.has(f.key) ? 'border-red-200 opacity-60' : 'border-gray-200 cursor-pointer'}`}
+                    onClick={() => !ALWAYS_REQUIRED_KEYS.has(f.key) && toggleRequired(f.id)}
+                  >
+                    <span className={`px-2.5 py-0.5 transition-colors ${!f.required ? 'bg-gray-200 text-gray-700' : 'text-gray-300'}`}>
+                      선택
+                    </span>
+                    <span className={`px-2.5 py-0.5 transition-colors ${f.required ? 'bg-red-400 text-white' : 'text-gray-300'}`}>
+                      필수
+                    </span>
+                  </div>
+                  {/* 커스텀 필드 삭제 버튼 */}
+                  {!BASE_FIELD_KEYS.has(f.key) && (
+                    <button
+                      type="button"
+                      onClick={() => removeField(f.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   )}
                 </div>
               </div>
