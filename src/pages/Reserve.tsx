@@ -42,7 +42,7 @@ export default function Reserve() {
 
   const isValidName = isValidKoreanName(customer.name);
   const isValidPhone = isValidPhone010(customer.phone);
-  const isValidMail = isValidEmail(customer.email);
+  const isValidMail = !customer.email || isValidEmail(customer.email);
 
   const getFieldError = (key: keyof CustomerForm): string | undefined => {
     const value = customer[key];
@@ -70,6 +70,7 @@ export default function Reserve() {
         const hasDuplicate = normalizedUnit !== '' && reservations.some(r =>
           r.eventId === event.id
           && r.date === selectedDate
+          && r.status === 'confirmed'
           && normalizeUnitNumber(r.extraFields?.unitNumber ?? '') === normalizedUnit
         );
         if (hasDuplicate) {
@@ -168,14 +169,14 @@ export default function Reserve() {
 
             <div className="space-y-4">
               {([
-                { label: '이름', key: 'name' as const, type: 'text', placeholder: '홍길동' },
-                { label: '휴대폰 번호', key: 'phone' as const, type: 'tel', placeholder: '01012345678 (- 없이 입력)' },
-                { label: '이메일', key: 'email' as const, type: 'email', placeholder: 'example@email.com' },
-                { label: '동호수', key: 'unitNumber' as const, type: 'text', placeholder: '예) 101동 501호' },
-              ]).map(({ label, key, type, placeholder }) => (
+                { label: '이름', key: 'name' as const, type: 'text', placeholder: '홍길동', required: true },
+                { label: '휴대폰 번호', key: 'phone' as const, type: 'tel', placeholder: '01012345678 (- 없이 입력)', required: true },
+                { label: '이메일', key: 'email' as const, type: 'email', placeholder: 'example@email.com', required: false },
+                { label: '동호수', key: 'unitNumber' as const, type: 'text', placeholder: '예) 101동 501호', required: true },
+              ]).map(({ label, key, type, placeholder, required }) => (
                 <div key={key}>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                    {label} <span className="text-red-400">*</span>
+                    {label} {required && <span className="text-red-400">*</span>}
                   </label>
                   <input
                     type={type}
@@ -205,7 +206,7 @@ export default function Reserve() {
                 />
                 <span className="text-sm text-gray-600">
                   개인정보 수집 및 이용에 동의합니다. <span className="text-red-400">*</span><br />
-                  <span className="text-xs text-gray-400">수집 항목: 이름, 연락처, 이메일, 동호수 / 목적: 방문 예약 확인 / 보유: 행사 종료 후 1개월</span>
+                  <span className="text-xs text-gray-400">수집 항목: 이름, 연락처, 이메일(선택), 동호수 / 목적: 방문 예약 확인 / 보유: 행사 종료 후 1개월</span>
                 </span>
               </label>
             </div>

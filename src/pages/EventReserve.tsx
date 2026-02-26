@@ -50,7 +50,7 @@ export default function EventReserve() {
   const emailValue = getFieldValue('email');
   const isValidName = isValidKoreanName(nameValue);
   const isValidPhone = isValidPhone010(phoneValue);
-  const isValidMail = isValidEmail(emailValue);
+  const isValidMail = !emailValue || isValidEmail(emailValue);
 
   const getFieldError = (key: string): string | undefined => {
     const value = getFieldValue(key);
@@ -79,6 +79,7 @@ export default function EventReserve() {
       const hasDuplicate = normalizedUnit !== '' && reservations.some(r =>
         r.eventId === event.id
         && r.date === selectedDate
+        && r.status === 'confirmed'
         && normalizeUnitNumber(r.extraFields?.unitNumber ?? '') === normalizedUnit
       );
       if (hasDuplicate) {

@@ -20,6 +20,7 @@ export interface Event {
   id: string;
   slug: string;                  // 고유 URL 슬러그 (예: 'abc123de')
   shareDomain?: string;          // 행사별 공유 도메인 (예: 'https://example.com')
+  imageUrl?: string;             // 행사 배너 이미지 URL
   title: string;
   description: string;
   venue: string;

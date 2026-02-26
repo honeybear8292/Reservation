@@ -67,17 +67,19 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
 const BASE_FIELDS: CustomField[] = [
   { id: 'bf1', key: 'name', label: '이름', type: 'text', placeholder: '홍길동', required: true },
   { id: 'bf2', key: 'phone', label: '연락처', type: 'tel', placeholder: '01012345678', required: true },
-  { id: 'bf3', key: 'email', label: '이메일', type: 'email', placeholder: 'example@email.com', required: true },
+  { id: 'bf3', key: 'email', label: '이메일', type: 'email', placeholder: 'example@email.com', required: false },
   { id: 'bf4', key: 'unitNumber', label: '동호수', type: 'text', placeholder: '예) 101동 501호', required: true },
 ];
 const BASE_FIELD_KEYS = new Set(BASE_FIELDS.map(f => f.key));
+// 이메일은 필수 여부를 변경할 수 있는 유일한 기본 필드
+const ALWAYS_REQUIRED_KEYS = new Set(['name', 'phone', 'unitNumber']);
 
 const normalizeBaseFields = (fields: CustomField[]): CustomField[] => {
   const byKey = new Map(fields.map(f => [f.key, f]));
   const base = BASE_FIELDS.map(f => ({
     ...f,
     ...(byKey.get(f.key) ?? {}),
-    required: true,
+    required: ALWAYS_REQUIRED_KEYS.has(f.key) ? true : (byKey.get(f.key)?.required ?? f.required),
   }));
   const rest = fields.filter(f => !BASE_FIELD_KEYS.has(f.key));
   return [...base, ...rest];
@@ -119,6 +121,7 @@ export default function EventForm() {
       : '');
 
   const [title, setTitle] = useState(existing?.title ?? '');
+  const [imageUrl, setImageUrl] = useState(existing?.imageUrl ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
   const [venue, setVenue] = useState(existing?.venue ?? '');
   const [address, setAddress] = useState(existing?.address ?? '');
@@ -165,7 +168,7 @@ export default function EventForm() {
   );
   const toggleRequired = (fid: string) =>
     setCustomFields(prev => prev.map(f => {
-      if (f.id !== fid || BASE_FIELD_KEYS.has(f.key)) return f;
+      if (f.id !== fid || ALWAYS_REQUIRED_KEYS.has(f.key)) return f;
       return { ...f, required: !f.required };
     }));
 
@@ -184,6 +187,7 @@ export default function EventForm() {
     const event: Event = {
       id: eventId,
       slug,
+      imageUrl: imageUrl.trim() || undefined,
       title, description, venue, address,
       dates,
       startTime: startTime || undefined,
@@ -218,6 +222,19 @@ export default function EventForm() {
             <label className={labelCls}>행사명 <span className="text-red-400">*</span></label>
             <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)}
               placeholder="예) 힐스테이트 판교역 입주박람회" required />
+          </div>
+
+          <div>
+            <label className={labelCls}>배너 이미지 URL</label>
+            <input className={inputCls} value={imageUrl} onChange={e => setImageUrl(e.target.value)}
+              placeholder="예) https://example.com/banner.jpg" type="url" />
+            {imageUrl.trim() && (
+              <div className="relative mt-2 h-28 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center bg-black">
+                <img src={imageUrl.trim()} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-50 pointer-events-none" />
+                <img src={imageUrl.trim()} alt="미리보기" className="relative max-w-full max-h-full object-contain" style={{ maxHeight: '7rem' }} />
+              </div>
+            )}
+            <p className="text-xs text-gray-400 mt-1">행사 페이지 상단에 표시될 이미지 URL을 입력하세요. 비워두면 기본 이미지가 표시됩니다.</p>
           </div>
 
           <div>
@@ -336,9 +353,6 @@ export default function EventForm() {
                     <span className="text-xs text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">
                       {FIELD_TYPE_LABELS[f.type]}
                     </span>
-                    {f.required && (
-                      <span className="text-xs text-red-400 font-semibold">필수</span>
-                    )}
                   </div>
                   {f.options && f.options.length > 0 && (
                     <p className="text-xs text-gray-400 mt-0.5 truncate">
@@ -347,31 +361,48 @@ export default function EventForm() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {BASE_FIELD_KEYS.has(f.key) ? (
-                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold border border-red-300 text-red-500 bg-red-50">
-                      필수
-                    </span>
+                  {f.required ? (
+                    ALWAYS_REQUIRED_KEYS.has(f.key) ? (
+                      <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold border border-red-300 text-red-500 bg-red-50">
+                        필수
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => toggleRequired(f.id)}
+                        className="text-xs px-2.5 py-0.5 rounded-full font-semibold border border-red-300 text-red-500 bg-red-50 hover:bg-red-100 transition-colors"
+                      >
+                        필수
+                      </button>
+                    )
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => toggleRequired(f.id)}
-                      className={`text-xs px-2 py-0.5 rounded-full font-semibold border transition-all ${
-                        f.required
-                          ? 'border-red-300 text-red-500 bg-red-50'
-                          : 'border-gray-200 text-gray-400 hover:border-gray-300'
-                      }`}
-                    >
-                      {f.required ? '필수' : '선택'}
-                    </button>
+                    BASE_FIELD_KEYS.has(f.key) ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleRequired(f.id)}
+                        className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                      >
+                        선택
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => toggleRequired(f.id)}
+                          className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                        >
+                          선택
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeField(f.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </>
+                    )
                   )}
-                  <button
-                    type="button"
-                    onClick={() => removeField(f.id)}
-                    disabled={BASE_FIELD_KEYS.has(f.key)}
-                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <Trash2 size={13} />
-                  </button>
                 </div>
               </div>
             ))}

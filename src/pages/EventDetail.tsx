@@ -48,8 +48,15 @@ export default function EventDetail() {
       </button>
 
       {/* Top banner */}
-      <div className="h-32 md:h-44 flex items-center justify-center text-7xl" style={{ backgroundColor: '#E0D6F9' }}>
-        🏢
+      <div className="relative h-48 md:h-64 flex items-center justify-center overflow-hidden" style={event.imageUrl ? { backgroundColor: '#000' } : { backgroundColor: '#E0D6F9' }}>
+        {event.imageUrl ? (
+          <>
+            <img src={event.imageUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-50 pointer-events-none" />
+            <img src={event.imageUrl} alt={event.title} className="relative max-w-full max-h-full object-contain" style={{ maxHeight: '16rem' }} />
+          </>
+        ) : (
+          <span className="text-7xl">🏢</span>
+        )}
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
