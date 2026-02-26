@@ -102,22 +102,24 @@ export default function EventEntry() {
         )}
 
         {/* CTA */}
-        {(event.vendorCategories?.length ?? 0) > 0 && (
+        <div className="relative">
+          {(event.vendorCategories?.length ?? 0) > 0 && (
+            <button
+              onClick={() => navigate(`/e/${event.slug}/vendors`)}
+              className="absolute -top-6 right-0 text-xs font-medium hover:underline"
+              style={{ color: '#667EEA' }}
+            >
+              입점 업체 확인하기 →
+            </button>
+          )}
           <button
-            onClick={() => navigate(`/e/${event.slug}/vendors`)}
-            className="w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 border-2 hover:bg-gray-50 transition-all bg-white"
-            style={{ borderColor: '#667EEA', color: '#667EEA' }}
+            onClick={() => navigate(`/e/${event.slug}/reserve`)}
+            className="w-full py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-2 shadow-md hover:opacity-90 transition-all"
+            style={{ backgroundColor: '#667EEA' }}
           >
-            입점 업체 확인하기
+            방문 예약하기 <ChevronRight size={22} />
           </button>
-        )}
-        <button
-          onClick={() => navigate(`/e/${event.slug}/reserve`)}
-          className="w-full py-4 rounded-2xl font-bold text-white text-lg flex items-center justify-center gap-2 shadow-md hover:opacity-90 transition-all"
-          style={{ backgroundColor: '#667EEA' }}
-        >
-          방문 예약하기 <ChevronRight size={22} />
-        </button>
+        </div>
 
         <button
           onClick={() => navigate(`/e/${event.slug}/ticket`)}
