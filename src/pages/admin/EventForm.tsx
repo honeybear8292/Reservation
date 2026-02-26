@@ -1,9 +1,64 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Trash2, ChevronLeft, Copy, GripVertical } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, Copy, GripVertical, X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { generateId, generateSlug, getEventShareUrl } from '../../utils/helpers';
 import type { Event, CustomField, CustomFieldType, VendorCategory, Vendor } from '../../types';
+
+function VendorImageInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const isDataUrl = value.startsWith('data:');
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => onChange(e.target?.result as string ?? '');
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-2">
+      {!isDataUrl && (
+        <input
+          type="url"
+          placeholder="이미지 URL 입력 (선택)"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667EEA]"
+        />
+      )}
+      {value ? (
+        <div className="relative inline-flex">
+          <img src={value} alt="미리보기" className="h-20 w-auto object-contain rounded-xl border border-gray-100 bg-white p-1" />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+          >
+            <X size={10} />
+          </button>
+        </div>
+      ) : (
+        <div
+          onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+          onClick={() => fileRef.current?.click()}
+          className={`border-2 border-dashed rounded-xl py-3 text-center cursor-pointer transition-colors ${
+            isDragging ? 'border-[#667EEA] bg-blue-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <p className="text-xs text-gray-400">
+            드래그하거나 <span className="font-semibold" style={{ color: '#667EEA' }}>클릭하여 업로드</span>
+          </p>
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
+    </div>
+  );
+}
 
 function generateDateRange(start: string, end: string): string[] {
   if (!start || !end) return [];
@@ -590,16 +645,7 @@ export default function EventForm() {
                           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667EEA]"
                           autoFocus
                         />
-                        <input
-                          type="url"
-                          placeholder="업체 이미지 URL (선택)"
-                          value={newVendorImage}
-                          onChange={e => setNewVendorImage(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667EEA]"
-                        />
-                        {newVendorImage.trim() && (
-                          <img src={newVendorImage.trim()} alt="미리보기" className="h-16 object-contain rounded-lg border border-gray-100 bg-white" />
-                        )}
+                        <VendorImageInput value={newVendorImage} onChange={setNewVendorImage} />
                         <div className="flex gap-2">
                           <button type="button" onClick={() => addVendor(cat.id)} disabled={!newVendorName.trim()}
                             className="flex-1 py-1.5 text-sm rounded-lg text-white font-semibold disabled:opacity-40"
