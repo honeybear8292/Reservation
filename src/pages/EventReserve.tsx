@@ -201,7 +201,7 @@ export default function EventReserve() {
                         </span>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                    <div className="border border-gray-200 rounded-xl px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
                       {event.vendorCategories!.map(cat => {
                         const checked = selected.includes(cat.name);
                         const disabled = !checked && selected.length >= MAX;

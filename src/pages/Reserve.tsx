@@ -218,8 +218,8 @@ export default function Reserve() {
               ))}
 
               {/* 관심 서비스 */}
-              <div className="pt-1">
-                <div className="flex items-baseline gap-2 mb-2">
+              <div>
+                <div className="flex items-baseline gap-2 mb-1.5">
                   <label className="block text-sm font-semibold text-gray-700">관심 서비스</label>
                   <span className="text-xs text-gray-400">최대 {MAX_SERVICES}개 선택</span>
                   {interestedServices.length > 0 && (
@@ -228,7 +228,7 @@ export default function Reserve() {
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                <div className="border border-gray-200 rounded-xl px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
                   {serviceOptions.map(name => {
                     const checked = interestedServices.includes(name);
                     const disabled = !checked && interestedServices.length >= MAX_SERVICES;
@@ -250,7 +250,7 @@ export default function Reserve() {
                   })}
                 </div>
                 {interestedServices.length >= MAX_SERVICES && (
-                  <p className="text-xs mt-2" style={{ color: '#667EEA' }}>최대 {MAX_SERVICES}개까지 선택할 수 있습니다.</p>
+                  <p className="text-xs mt-1.5" style={{ color: '#667EEA' }}>최대 {MAX_SERVICES}개까지 선택할 수 있습니다.</p>
                 )}
               </div>
 
